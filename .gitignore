@@ -45,6 +45,7 @@ Thumbs.db
 # Environment
 .env
 .env.local
+# Note: Set DATABASE_URL in Vercel dashboard, not in .env file
 
 # Vercel
 # vercel.json - DO NOT IGNORE - Required for deployment!

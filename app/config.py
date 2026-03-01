@@ -16,7 +16,9 @@ class Settings(BaseSettings):
     # Debug mode (should be False in production)
     DEBUG: bool = False
     
-    # Database
+    # Database - Override with external DB for Vercel (e.g., Neon, Supabase, Turso)
+    # Format: postgresql+asyncpg://user:pass@host/dbname
+    # For SQLite local dev: sqlite+aiosqlite:///data/retroagg.db
     DATABASE_URL: str = "sqlite+aiosqlite:///data/retroagg.db"
     
     # RSS Fetching
