@@ -28,7 +28,7 @@ async def index(
 ):
     """Main page with article feed"""
     
-    page_size = settings.PAGE_SIZE
+    page_size = 25
     
     # Handle empty string for source_id (form submits "All Sources" as empty string)
     parsed_source_id: Optional[int] = None

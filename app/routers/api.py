@@ -24,7 +24,7 @@ async def get_articles(
     region: Optional[str] = Query(None, description="Filter by region (Asia, Africa, MENA, Europe, Americas, Global)"),
     include_duplicates: bool = Query(False, description="Include duplicate articles"),
     page: int = Query(1, ge=1, description="Page number"),
-    page_size: int = Query(settings.PAGE_SIZE, ge=1, le=100, description="Items per page"),
+    page_size: int = Query(25, ge=1, le=100, description="Items per page"),
     db: AsyncSession = Depends(get_db)
 ):
     """Get articles with optional filtering"""

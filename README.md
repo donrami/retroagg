@@ -1,6 +1,6 @@
 # RetroAgg
 
-A **global news aggregator** prioritizing information pluralism and breaking content bubbles through diverse international sources.
+A global news aggregator prioritizing information pluralism and breaking content bubbles through diverse international sources.
 
 ![License](https://img.shields.io/badge/license-AGPL-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.11+-blue.svg)
@@ -20,19 +20,11 @@ RetroAgg represents a rebellion against the algorithmic curation and Western-cen
 ## Features
 
 ### Core Functionality
-- **RSS Aggregation** - Async fetching from 15+ diverse global sources
-- **Auto-deduplication** - Content hashing + headline similarity (70% threshold)
+- **RSS Aggregation** - Async fetching from 30+ diverse global sources
+- **Auto-deduplication** - Content hashing + headline similarity
 - **Background Updates** - Automatic feed refresh every 15 minutes
 - **Regional Filtering** - Filter by geographic region
-- **Source Transparency** - Bias indicators and region tags
-- **Dark/Light Theme** - Toggle between dark and light modes
-
-### Tech Stack
-- **Backend**: FastAPI (Python) with async support
-- **Database**: SQLite with SQLAlchemy ORM
-- **Frontend**: Jinja2 templates with custom CSS
-- **Scheduling**: APScheduler for background tasks
-- **RSS Parsing**: feedparser + httpx for async HTTP
+- **Source Transparency** - Bias indicators
 
 ## Installation
 
@@ -44,16 +36,14 @@ RetroAgg represents a rebellion against the algorithmic curation and Western-cen
 
 1. **Clone the repository**
 ```bash
-git clone <repository-url>
+git clone https://github.com/donrami/retroagg.git
 cd retroagg
 ```
 
 2. **Create virtual environment**
 ```bash
 python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# or
-venv\Scripts\activate  # Windows
+source venv/bin/activate
 ```
 
 3. **Install dependencies**
@@ -86,8 +76,7 @@ http://localhost:8000
 
 ### Web Interface
 - **Home** (`/`) - Article feed with region/source filters
-- **Sources** (`/sources`) - Complete source registry by region
-- **API Docs** (`/api/docs`) - Interactive Swagger documentation
+- **Sources** (`/sources`) - Source registry
 
 ### API Endpoints
 
@@ -99,18 +88,7 @@ http://localhost:8000
 | `/api/stats` | GET | Get basic statistics |
 | `/health` | GET | Health check |
 
-### Query Parameters
-
-**`/api/articles`**
-- `region` - Filter by region (Asia, Africa, MENA, Europe, Americas, Global)
-- `source_id` - Filter by source ID
-- `include_duplicates` - Include duplicate articles (default: false)
-- `page` - Page number (default: 1)
-- `page_size` - Items per page (default: 50)
-
 ## Source Registry
-
-RetroAgg prioritizes diverse perspectives:
 
 ### MENA (Middle East & North Africa)
 - Al Jazeera (Qatar) - Arab perspective on global affairs
@@ -149,7 +127,6 @@ FETCH_INTERVAL_MINUTES = 15  # Background fetch interval
 REQUEST_TIMEOUT = 30         # HTTP timeout
 MAX_RETRIES = 3             # Retry attempts for failed fetches
 DUPLICATE_THRESHOLD = 0.70   # Headline similarity threshold
-PAGE_SIZE = 50              # Articles per page
 ```
 
 ## Project Structure
@@ -172,16 +149,6 @@ retroagg/
 ├── requirements.txt
 └── README.md
 ```
-
-## Future Enhancements
-
-- [ ] AI-powered semantic extraction (ScrapeGraphAI)
-- [ ] Vector search with embeddings
-- [ ] LLM summarization
-- [ ] Sentiment analysis
-- [ ] ActivityPub/Fediverse integration
-- [ ] Nostr protocol support
-- [ ] Proxy layer for geo-unblocking
 
 ## Legal/Ethical Considerations
 

@@ -28,7 +28,6 @@ class Settings(BaseSettings):
     DUPLICATE_THRESHOLD: float = 0.70  # 70% headline similarity
     
     # UI
-    PAGE_SIZE: int = 25
     MAX_SUMMARY_LENGTH: int = 300
     
     # Rate limiting
