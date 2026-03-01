@@ -20,6 +20,7 @@ from fastapi.staticfiles import StaticFiles
 # Import app components (lazy loading for serverless)
 from app.config import settings
 from app.routers import api_router, pages_router
+from app.database import init_db
 
 
 # Create a new FastAPI instance for Vercel
@@ -28,6 +29,16 @@ vercel_app = FastAPI(
     description=settings.APP_DESCRIPTION,
     version=settings.APP_VERSION,
 )
+
+
+@vercel_app.on_event("startup")
+async def startup_event():
+    """Initialize database tables on startup"""
+    try:
+        await init_db()
+        logger.info("Database tables initialized")
+    except Exception as e:
+        logger.warning(f"Could not initialize database: {e}")
 
 
 # Exception handler for better error visibility
