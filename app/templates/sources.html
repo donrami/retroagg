@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }} - News Sources{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <h1 class="page-title">News Sources</h1>
+    <p class="page-subtitle">Diverse global sources to break the Western-centric content bubble</p>
+</div>
+
+<!-- Philosophy Section -->
+<div class="sources-section" style="margin-bottom: var(--space-6);">
+    <div style="padding: var(--space-4); background: linear-gradient(135deg, rgba(13, 110, 253, 0.08), rgba(13, 110, 253, 0.02)); border: 1px solid rgba(13, 110, 253, 0.2); border-radius: var(--radius-lg);">
+        <h3 style="margin-top: 0; margin-bottom: var(--space-3); color: var(--text-primary);">
+            <span style="margin-right: var(--space-2);">🌍</span>Our Philosophy
+        </h3>
+        <p style="margin-bottom: var(--space-3); color: var(--text-secondary); font-size: var(--text-sm);">
+            We believe in breaking the Western-centric content bubble that dominates global news. Our mission is to surface
+            voices and perspectives from the Global South, non-Western regions, and independent outlets that are often
+            underrepresented in mainstream media.
+        </p>
+        <p style="margin-bottom: 0; color: var(--text-secondary); font-size: var(--text-sm);">
+            <strong>Selection Criteria:</strong> We prioritize sources based on geographic diversity, independence from
+            corporate interests, and commitment to underreported stories. Political bias indicators (when available) are
+            based on independent media bias assessments.
+        </p>
+    </div>
+</div>
+
+<!-- Sources Section -->
+<div class="sources-section">
+    <div class="sources-header" style="margin-bottom: var(--space-4);">
+        <div class="sources-count">
+            <strong>{{ total_sources }}</strong> sources across <strong>{{ sources_by_region|length }}</strong> regions
+        </div>
+    </div>
+    
+    <!-- Compact Table View -->
+    <div style="overflow-x: auto; border: 1px solid var(--border-color); border-radius: var(--radius-lg);">
+        <table style="width: 100%; border-collapse: collapse; font-size: var(--text-sm);">
+            <thead>
+                <tr style="background: var(--bg-tertiary); border-bottom: 2px solid var(--border-color);">
+                    <th style="padding: var(--space-3) var(--space-4); text-align: left; font-weight: 600; color: var(--text-secondary); white-space: nowrap;">Source</th>
+                    <th style="padding: var(--space-3) var(--space-4); text-align: left; font-weight: 600; color: var(--text-secondary); white-space: nowrap;">Region</th>
+                    <th style="padding: var(--space-3) var(--space-4); text-align: left; font-weight: 600; color: var(--text-secondary); white-space: nowrap;">Lang</th>
+                    <th style="padding: var(--space-3) var(--space-4); text-align: left; font-weight: 600; color: var(--text-secondary); white-space: nowrap;">Bias</th>
+                    <th style="padding: var(--space-3) var(--space-4); text-align: center; font-weight: 600; color: var(--text-secondary); white-space: nowrap;">Status</th>
+                    <th style="padding: var(--space-3) var(--space-4); text-align: left; font-weight: 600; color: var(--text-secondary); white-space: nowrap;">Description</th>
+                    <th style="padding: var(--space-3) var(--space-4); text-align: left; font-weight: 600; color: var(--text-secondary); white-space: nowrap;">URL</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for region, sources in sources_by_region.items() %}
+                    {% for source in sources %}
+                    <tr style="border-bottom: 1px solid var(--border-light); background: var(--bg-secondary); transition: background var(--transition-fast);" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='var(--bg-secondary)'">
+                        <td style="padding: var(--space-2) var(--space-4); vertical-align: middle;">
+                            <span style="font-weight: 500; color: var(--text-primary);">{{ source.name }}</span>
+                        </td>
+                        <td style="padding: var(--space-2) var(--space-4); vertical-align: middle;">
+                            <span style="color: var(--text-secondary);">{{ source.region }}</span>
+                        </td>
+                        <td style="padding: var(--space-2) var(--space-4); vertical-align: middle;">
+                            <span style="color: var(--text-tertiary); text-transform: uppercase; font-size: var(--text-xs);">{{ source.language }}</span>
+                        </td>
+                        <td style="padding: var(--space-2) var(--space-4); vertical-align: middle;">
+                            {% if source.bias_indicator and source.bias_indicator != 'Unknown' %}
+                            <span style="display: inline-block; padding: 2px 8px; border-radius: var(--radius-sm); font-size: var(--text-xs); font-weight: 500; background: rgba(13, 110, 253, 0.15); color: var(--accent-primary);">{{ source.bias_indicator }}</span>
+                            {% else %}
+                            <span style="color: var(--text-muted);">—</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: var(--space-2) var(--space-4); vertical-align: middle; text-align: center;">
+                            {% if source.is_active %}
+                            <span style="display: inline-block; padding: 2px 8px; border-radius: var(--radius-sm); font-size: var(--text-xs); font-weight: 500; background: rgba(81, 207, 102, 0.15); color: var(--accent-success);">Active</span>
+                            {% else %}
+                            <span style="display: inline-block; padding: 2px 8px; border-radius: var(--radius-sm); font-size: var(--text-xs); font-weight: 500; background: rgba(255, 107, 107, 0.15); color: var(--accent-danger);">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: var(--space-2) var(--space-4); vertical-align: middle; max-width: 300px;">
+                            <span style="color: var(--text-tertiary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;" title="{{ source.description or 'No description' }}">{{ source.description or '—' }}</span>
+                        </td>
+                        <td style="padding: var(--space-2) var(--space-4); vertical-align: middle;">
+                            <a href="{{ source.url }}" target="_blank" rel="noopener" style="color: var(--accent-primary); text-decoration: none; font-size: var(--text-xs); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; max-width: 200px;">{{ source.url }}</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Info Box -->
+    <div style="margin-top: var(--space-6); padding: var(--space-4); background: rgba(13, 110, 253, 0.05); border: 1px solid rgba(13, 110, 253, 0.2); border-radius: var(--radius-lg);">
+        <p style="font-size: var(--text-sm); color: var(--text-secondary); margin: 0;">
+            <strong>Note:</strong> We prioritize sources from the Global South, non-Western regions, and independent outlets to provide a truly pluralistic news diet.
+            Sources marked with political bias indicators are based on independent media bias assessments.
+        </p>
+    </div>
+</div>
+
+<!-- Legend Section -->
+<div class="sources-section" style="margin-top: var(--space-8);">
+    <h2 class="region-title">Region Legend</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--space-3);">
+        <div style="padding: var(--space-3); background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+            <span style="font-weight: 500; color: var(--text-primary);">Asia</span>
+            <p style="margin: var(--space-1) 0 0; font-size: var(--text-xs); color: var(--text-tertiary);">East, SE, South Asia</p>
+        </div>
+        <div style="padding: var(--space-3); background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+            <span style="font-weight: 500; color: var(--text-primary);">MENA</span>
+            <p style="margin: var(--space-1) 0 0; font-size: var(--text-xs); color: var(--text-tertiary);">Middle East & North Africa</p>
+        </div>
+        <div style="padding: var(--space-3); background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+            <span style="font-weight: 500; color: var(--text-primary);">Africa</span>
+            <p style="margin: var(--space-1) 0 0; font-size: var(--text-xs); color: var(--text-tertiary);">Sub-Saharan Africa</p>
+        </div>
+        <div style="padding: var(--space-3); background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+            <span style="font-weight: 500; color: var(--text-primary);">Americas</span>
+            <p style="margin: var(--space-1) 0 0; font-size: var(--text-xs); color: var(--text-tertiary);">North, Central, South</p>
+        </div>
+        <div style="padding: var(--space-3); background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+            <span style="font-weight: 500; color: var(--text-primary);">Europe</span>
+            <p style="margin: var(--space-1) 0 0; font-size: var(--text-xs); color: var(--text-tertiary);">European nations</p>
+        </div>
+        <div style="padding: var(--space-3); background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+            <span style="font-weight: 500; color: var(--text-primary);">Global South</span>
+            <p style="margin: var(--space-1) 0 0; font-size: var(--text-xs); color: var(--text-tertiary);">Developing nations</p>
+        </div>
+        <div style="padding: var(--space-3); background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+            <span style="font-weight: 500; color: var(--text-primary);">Global</span>
+            <p style="margin: var(--space-1) 0 0; font-size: var(--text-xs); color: var(--text-tertiary);">International/wire</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

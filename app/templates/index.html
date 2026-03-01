@@ -1,0 +1,407 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }} - Global News Aggregator{% endblock %}
+
+{% block content %}
+<!-- Main Reader Shell with Fixed Height -->
+<div class="reader-shell-fixed">
+    <!-- Left Pane: Filters + Articles List -->
+    <div class="left-pane">
+        <!-- Integrated Filter Card -->
+        <div class="filter-card">
+            <div class="filter-card-header">
+                <span class="filter-card-title">Filters</span>
+            </div>
+            <form method="get" action="/" class="filter-form-compact">
+                <!-- Region Filter Pills -->
+                <div class="filter-pills-compact">
+                    {% for region in regions %}
+                    {% if region not in ['Global', 'Global South', 'International'] %}
+                    <label class="filter-pill {% if selected_regions and region in selected_regions %}active{% endif %}">
+                        <input type="checkbox"
+                               name="regions"
+                               value="{{ region }}"
+                               {% if selected_regions and region in selected_regions %}checked{% endif %}
+                               onchange="this.form.submit()">
+                        <span>{{ region }}</span>
+                    </label>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                
+                <!-- Date Filter - Granular Dropdown -->
+                <div class="date-filter-dropdown">
+                    <label class="date-filter-label">Time range</label>
+                    <select name="date_filter"
+                            class="date-select"
+                            onchange="this.form.submit()">
+                        <option value="0" {% if date_filter == '0' %}selected{% endif %}>Today</option>
+                        <option value="1" {% if date_filter == '1' %}selected{% endif %}>Past 3 days</option>
+                        <option value="2" {% if date_filter == '2' or not date_filter %}selected{% endif %}>Past week</option>
+                        <option value="3" {% if date_filter == '3' %}selected{% endif %}>Past 2 weeks</option>
+                        <option value="4" {% if date_filter == '4' %}selected{% endif %}>Past month</option>
+                    </select>
+                </div>
+                
+                {% if selected_regions or date_filter %}
+                <div class="filter-card-footer">
+                    <a href="/" class="btn btn-ghost btn-sm">Clear</a>
+                </div>
+                {% endif %}
+            </form>
+        </div>
+        
+        <!-- Articles List with Scroll -->
+        <div class="articles-list-scroll">
+            <div class="articles-count-bar">
+                <strong>{{ total_articles }}</strong> articles
+                {% if selected_regions %}
+                <span>in {{ selected_regions|join(', ') }}</span>
+                {% endif %}
+                <button type="button" class="btn-refresh" id="refreshBtn" onclick="refreshFeeds()" title="Pull new articles">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M23 4v6h-6"></path>
+                        <path d="M1 20v-6h6"></path>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                    </svg>
+                    <span id="refreshText">Refresh</span>
+                </button>
+            </div>
+            
+            {% if articles %}
+            <div class="articles-list-content">
+                {% for article in articles %}
+                <div class="article-card-compact" data-url="{{ article.url }}">
+                    <div class="article-card-body-compact">
+                        <div class="article-tags-compact">
+                            <span class="article-tag-source">{{ article.source_name }}</span>
+                            <span class="article-tag-region">{{ article.source_region }}</span>
+                        </div>
+                        <h3 class="article-title-compact">
+                            <a class="article-link" href="{{ article.url }}" target="_blank">{{ article.title }}</a>
+                        </h3>
+                        {% if article.summary %}
+                        <p class="article-summary-compact">{{ article.summary }}</p>
+                        {% endif %}
+                        <div class="article-meta-compact">
+                            {% if article.published_at %}
+                            <span class="article-date">{{ article.published_at.strftime('%b %d, %H:%M') }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if total_pages > 1 %}
+            <div class="pagination-compact">
+                {% if page > 1 %}
+                <a href="/?page={{ page - 1 }}{% for r in selected_regions %}&regions={{ r }}{% endfor %}{% if date_filter %}&date_filter={{ date_filter }}{% endif %}" class="pagination-btn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </a>
+                {% else %}
+                <span class="pagination-btn disabled">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </span>
+                {% endif %}
+                
+                <span class="pagination-info">{{ page }}/{{ total_pages }}</span>
+                
+                {% if page < total_pages %}
+                <a href="/?page={{ page + 1 }}{% for r in selected_regions %}&regions={{ r }}{% endfor %}{% if date_filter %}&date_filter={{ date_filter }}{% endif %}" class="pagination-btn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </a>
+                {% else %}
+                <span class="pagination-btn disabled">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </span>
+                {% endif %}
+            </div>
+            {% endif %}
+            {% else %}
+            <div class="empty-state">
+                <p>No articles found.</p>
+                {% if selected_regions %}
+                <a href="/" class="btn btn-primary btn-sm">Clear filters</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Right Pane: Reader -->
+    <div class="reader-pane-fixed" id="readerPane">
+        <div class="reader-empty" id="readerEmpty">
+            <div class="reader-empty-icon">📖</div>
+            <p class="reader-empty-text">Click an article to read it here</p>
+        </div>
+        <iframe id="articleReader" title="Article reader" style="display: none;"></iframe>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Manual refresh function
+async function refreshFeeds() {
+    const btn = document.getElementById('refreshBtn');
+    const text = document.getElementById('refreshText');
+    
+    if (btn.classList.contains('loading')) {
+        return; // Already loading
+    }
+    
+    btn.classList.add('loading');
+    text.textContent = 'Refreshing...';
+    btn.disabled = true;
+    
+    try {
+        const response = await fetch('/api/refresh', { method: 'POST' });
+        const data = await response.json();
+        
+        console.log('Refresh response:', data);
+        
+        if (data.status === 'success') {
+            const newCount = data.new_articles || 0;
+            text.textContent = `+${newCount} new`;
+            
+            // Always reload the page to show latest articles
+            // This ensures the user sees the most up-to-date list
+            setTimeout(() => {
+                window.location.reload(true);
+            }, 800);
+        } else {
+            text.textContent = 'Error';
+            setTimeout(() => {
+                btn.classList.remove('loading');
+                text.textContent = 'Refresh';
+                btn.disabled = false;
+            }, 2000);
+        }
+    } catch (error) {
+        console.error('Refresh failed:', error);
+        text.textContent = 'Error';
+        setTimeout(() => {
+            btn.classList.remove('loading');
+            text.textContent = 'Refresh';
+            btn.disabled = false;
+        }, 2000);
+    }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const readerFrame = document.getElementById("articleReader");
+    const readerEmpty = document.getElementById("readerEmpty");
+    let activeArticle = null;
+    let isLoading = false;
+
+    // Render extracted article content in the iframe
+    const renderArticleContent = (articleData) => {
+        if (!readerFrame) return;
+
+        const { title, content, byline, site_name, original_url, image_url } = articleData;
+        
+        const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.7;
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 24px 20px;
+            color: #e9ecef;
+            background: #212529;
+        }
+        .article-image {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 1.5em;
+            background: #343a40;
+        }
+        h1 { font-size: 1.4em; margin-bottom: 0.5em; color: #e9ecef;}
+        .byline { color: #868e96; font-size: 0.9em; margin-bottom: 1.5em; }
+        .content { font-size: 1em; }
+        .content img { max-width: 100%; height: auto; border-radius: 6px; }
+        .content p { margin-bottom: 1em; }
+        .content a { color: #4dabf7; }
+        .content blockquote {
+            border-left: 3px solid #495057;
+            margin: 1em 0;
+            padding-left: 1em;
+            color: #868e96;
+            font-style: italic;
+        }
+        .source-link {
+            margin-top: 2em;
+            padding-top: 1em;
+            border-top: 1px solid #495057;
+            font-size: 0.85em;
+            color: #868e96;
+        }
+        .source-link a { color: #4dabf7; text-decoration: none; }
+        .source-link a:hover { text-decoration: underline; }
+        .loading, .error {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            color: #868e96;
+        }
+        .error { flex-direction: column; color: #ff6b6b; }
+        .error a { color: #4dabf7; margin-top: 0.5em; }
+        
+        /* Custom Scrollbar - Blue */
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: #2c3036; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #4dabf7 0%, #339af0 100%);
+            border-radius: 9999px;
+            border: 2px solid #2c3036;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #74c0fc 0%, #4dabf7 100%);
+            box-shadow: 0 0 8px rgba(77, 171, 247, 0.4);
+        }
+        ::-webkit-scrollbar-thumb:active {
+            background: linear-gradient(180deg, #339af0 0%, #228be6 100%);
+        }
+    </style>
+</head>
+<body>
+    <article>
+        ${image_url ? `<img class="article-image" src="${escapeHtml(image_url)}" alt="${escapeHtml(title || 'Article image')}" onerror="this.style.display='none'">` : ''}
+        <h1>${escapeHtml(title || 'Untitled')}</h1>
+        ${byline ? `<p class="byline">By ${escapeHtml(byline)}</p>` : ''}
+        <div class="content">${stripHyperlinks(content) || '<p>No content available</p>'}</div>
+        <p class="source-link">
+            Source: ${escapeHtml(site_name || 'Unknown')} —
+            <a href="${escapeHtml(original_url)}" target="_blank" rel="noopener">Read original article</a>
+        </p>
+    </article>
+</body>
+</html>`;
+
+        const doc = readerFrame.contentDocument || readerFrame.contentWindow.document;
+        doc.open();
+        doc.write(html);
+        doc.close();
+        
+        readerFrame.style.display = 'block';
+        readerEmpty.style.display = 'none';
+        
+        // Scroll to top of the article
+        readerFrame.contentWindow.scrollTo(0, 0);
+    };
+
+    const showLoading = () => {
+        if (!readerFrame || !readerEmpty) return;
+        readerEmpty.innerHTML = '<div class="loading">Loading article...</div>';
+    };
+
+    const showError = (message, url) => {
+        if (!readerFrame || !readerEmpty) return;
+        readerEmpty.innerHTML = `
+            <div class="error">
+                <p>${escapeHtml(message)}</p>
+                <a href="${escapeHtml(url)}" target="_blank">Open in new tab</a>
+            </div>
+        `;
+        readerFrame.style.display = 'none';
+        readerEmpty.style.display = 'flex';
+    };
+
+    const escapeHtml = (text) => {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    };
+
+    // Strip hyperlinks from HTML content while preserving text
+    const stripHyperlinks = (html) => {
+        if (!html) return '';
+        const div = document.createElement('div');
+        div.innerHTML = html;
+        
+        // Find all anchor tags and replace them with their text content
+        const anchors = div.querySelectorAll('a');
+        anchors.forEach(anchor => {
+            const text = document.createTextNode(anchor.textContent);
+            anchor.parentNode.replaceChild(text, anchor);
+        });
+        
+        return div.innerHTML;
+    };
+
+    const loadInReader = async (url) => {
+        if (!readerFrame || isLoading) {
+            window.open(url, "_blank");
+            return;
+        }
+
+        isLoading = true;
+        showLoading();
+
+        try {
+            const encodedUrl = encodeURIComponent(url);
+            const response = await fetch(`/api/read?url=${encodedUrl}`);
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.detail || `Server error: ${response.status}`);
+            }
+            
+            const articleData = await response.json();
+            renderArticleContent(articleData);
+            
+        } catch (error) {
+            console.error('Failed to load article:', error);
+            showError(
+                'Could not load article. The site may be blocking automated access.',
+                url
+            );
+        } finally {
+            isLoading = false;
+        }
+    };
+
+    // Make whole article card clickable
+    document.querySelectorAll(".article-card-compact").forEach((card) => {
+        card.addEventListener("click", (event) => {
+            // Don't trigger if clicking on a nested link (let it handle its own click)
+            if (event.target.closest("a") && !event.target.classList.contains("article-link")) {
+                return;
+            }
+            
+            const articleUrl = card.getAttribute("data-url");
+            if (articleUrl) {
+                loadInReader(articleUrl);
+            }
+            
+            if (activeArticle && activeArticle !== card) {
+                activeArticle.classList.remove("active");
+            }
+            activeArticle = card;
+            card.classList.add("active");
+        });
+    });
+});
+</script>
+{% endblock %}
