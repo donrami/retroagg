@@ -231,4 +231,4 @@ flowchart TB
 
 ## License
 
-MIT License - See LICENSE file for details
+AGPL v4 License - See LICENSE file for details
