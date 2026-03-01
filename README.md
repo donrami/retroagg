@@ -1,6 +1,6 @@
 # RetroAgg
 
-A **vibe-coded news aggregator** with late 90s brutalist aesthetics, prioritizing information pluralism and breaking content bubbles through diverse global sources.
+A **global news aggregator** prioritizing information pluralism and breaking content bubbles through diverse international sources.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.11+-blue.svg)
@@ -8,7 +8,7 @@ A **vibe-coded news aggregator** with late 90s brutalist aesthetics, prioritizin
 
 ## Philosophy
 
-RetroAgg represents a rebellion against the algorithmic curation and Western-centric bias of modern news platforms. By embracing **digital brutalism** and prioritizing **non-Western perspectives**, it offers:
+RetroAgg represents a rebellion against the algorithmic curation and Western-centric bias of modern news platforms. By prioritizing **non-Western perspectives**, it offers:
 
 - **No algorithms** - Chronological feeds only, no personalization
 - **No tracking** - Your reading habits stay private
@@ -23,19 +23,20 @@ RetroAgg represents a rebellion against the algorithmic curation and Western-cen
 - **Background Updates** - Automatic feed refresh every 15 minutes
 - **Regional Filtering** - Filter by geographic region
 - **Source Transparency** - Bias indicators and region tags
+- **Dark/Light Theme** - Toggle between dark and light modes
 
 ### Tech Stack
 - **Backend**: FastAPI (Python) with async support
 - **Database**: SQLite with SQLAlchemy ORM
-- **Frontend**: Jinja2 templates + 98.css (Windows 98 aesthetic)
+- **Frontend**: Jinja2 templates with custom CSS
 - **Scheduling**: APScheduler for background tasks
 - **RSS Parsing**: feedparser + httpx for async HTTP
 
 ### Aesthetic
-- **Windows 98 UI** - Authentic brutalist design via 98.css
-- **High contrast** - Classic grey backgrounds, 3D borders
-- **System fonts** - MS Sans Serif, no external dependencies
-- **No images** - Text-only for maximum information density
+- **Modern clean design** - Dark and light theme support
+- **Inter font** - Modern, readable typography
+- **Responsive layout** - Works on all screen sizes
+- **Accessible** - High contrast, keyboard navigation
 
 ## Installation
 
