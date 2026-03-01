@@ -109,8 +109,20 @@ def get_session_factory():
 Base = declarative_base()
 
 
-# Backwards compatibility aliases
-AsyncSessionLocal = get_session_factory
+# Backwards compatibility - make session maker work with async with
+class _AsyncSessionLocal:
+    """Wrapper to make async_sessionmaker work as async context manager"""
+    def __call__(self):
+        return get_session_factory()()
+    
+    async def __aenter__(self):
+        return await get_session_factory()().__aenter__()
+    
+    async def __aexit__(self, *args):
+        return await get_session_factory()().__aexit__(*args)
+
+
+AsyncSessionLocal = _AsyncSessionLocal()
 
 
 # For backwards compatibility - use lazy getter
