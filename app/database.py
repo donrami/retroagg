@@ -76,6 +76,22 @@ def get_session_factory():
 Base = declarative_base()
 
 
+# Backwards compatibility aliases
+AsyncSessionLocal = get_session_factory
+
+
+# For backwards compatibility - use lazy getter
+class _EngineProxy:
+    def __call__(self):
+        return get_engine()
+    
+    def __getattr__(self, name):
+        return getattr(get_engine(), name)
+
+
+engine = _EngineProxy()
+
+
 async def get_db():
     """Dependency for getting database sessions with proper cleanup"""
     session_factory = get_session_factory()
