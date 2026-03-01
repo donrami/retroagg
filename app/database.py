@@ -49,21 +49,28 @@ def get_engine():
             elif "postgres://" in db_url:
                 db_url = db_url.replace("postgres://", "postgresql+asyncpg://", 1)
             
-            # Remove sslmode from URL and pass as connect_args
+            # Remove unsupported query params from URL and pass as connect_args
+            import urllib.parse
+            parsed = urllib.parse.urlparse(db_url)
+            query_params = urllib.parse.parse_qsl(parsed.query)
+            
             sslmode = "require"
-            if "sslmode" in db_url:
-                # Extract sslmode value
-                import urllib.parse
-                parsed = urllib.parse.urlparse(db_url)
-                for key, value in urllib.parse.parse_qsl(parsed.query):
-                    if key == "sslmode":
-                        sslmode = value
-                # Rebuild URL without sslmode
-                new_query = [q for q in urllib.parse.parse_qsl(parsed.query) if q[0] != "sslmode"]
-                db_url = urllib.parse.urlunparse((
-                    parsed.scheme, parsed.netloc, parsed.path, parsed.params,
-                    urllib.parse.urlencode(new_query), parsed.fragment
-                ))
+            # Extract and remove unsupported params
+            new_params = []
+            for key, value in query_params:
+                if key == "sslmode":
+                    sslmode = value
+                elif key == "channel_binding":
+                    # Skip this param - not supported by asyncpg
+                    continue
+                else:
+                    new_params.append((key, value))
+            
+            # Rebuild URL without unsupported params
+            db_url = urllib.parse.urlunparse((
+                parsed.scheme, parsed.netloc, parsed.path, parsed.params,
+                urllib.parse.urlencode(new_params), parsed.fragment
+            ))
             
             _engine = create_async_engine(
                 db_url,
