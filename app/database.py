@@ -49,10 +49,27 @@ def get_engine():
             elif "postgres://" in db_url:
                 db_url = db_url.replace("postgres://", "postgresql+asyncpg://", 1)
             
+            # Remove sslmode from URL and pass as connect_args
+            sslmode = "require"
+            if "sslmode" in db_url:
+                # Extract sslmode value
+                import urllib.parse
+                parsed = urllib.parse.urlparse(db_url)
+                for key, value in urllib.parse.parse_qsl(parsed.query):
+                    if key == "sslmode":
+                        sslmode = value
+                # Rebuild URL without sslmode
+                new_query = [q for q in urllib.parse.parse_qsl(parsed.query) if q[0] != "sslmode"]
+                db_url = urllib.parse.urlunparse((
+                    parsed.scheme, parsed.netloc, parsed.path, parsed.params,
+                    urllib.parse.urlencode(new_query), parsed.fragment
+                ))
+            
             _engine = create_async_engine(
                 db_url,
                 echo=False,
                 pool_pre_ping=True,
+                connect_args={"ssl": sslmode},
             )
         else:
             # Default - use NullPool
