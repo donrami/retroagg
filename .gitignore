@@ -47,7 +47,9 @@ Thumbs.db
 .env.local
 
 # Vercel
-vercel.json
+# vercel.json - DO NOT IGNORE - Required for deployment!
+.plans/
+.vercel
 
 # Plans
 plans/

@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     # Article content caching (for multi-user deployment)
     CONTENT_CACHE_TTL_HOURS: int = 24  # Cache extracted article content for 24 hours
     
-    # Paths
+    # Paths - use absolute paths that work in Vercel
     BASE_DIR: Path = Path(__file__).parent.parent
     DATA_DIR: Path = BASE_DIR / "data"
     TEMPLATES_DIR: Path = BASE_DIR / "app" / "templates"
@@ -44,6 +44,7 @@ class Settings(BaseSettings):
     
     class Config:
         env_file = ".env"
+        extra = "ignore"  # Allow extra fields in env
 
 
 # Global settings instance

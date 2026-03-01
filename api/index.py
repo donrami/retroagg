@@ -3,16 +3,19 @@ Vercel Serverless API Entry Point
 Converts FastAPI app to Vercel-compatible handler
 """
 import sys
+import logging
 from pathlib import Path
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from fastapi import FastAPI
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
-from starlette.requests import Request
-from starlette.responses import Response
 
 # Import app components (lazy loading for serverless)
 from app.config import settings
@@ -26,15 +29,38 @@ vercel_app = FastAPI(
     version=settings.APP_VERSION,
 )
 
+
+# Exception handler for better error visibility
+@vercel_app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Global exception: {type(exc).__name__}: {exc}")
+    import traceback
+    logger.error(traceback.format_exc())
+    return JSONResponse(
+        status_code=500,
+        content={"error": str(exc), "type": type(exc).__name__}
+    )
+
+
 # Mount static files
 try:
     vercel_app.mount("/static", StaticFiles(directory=str(settings.STATIC_DIR)), name="static")
-except Exception:
-    pass  # Static files may not be available in all environments
+    logger.info(f"Mounted static files from {settings.STATIC_DIR}")
+except Exception as e:
+    logger.warning(f"Could not mount static files: {e}")
 
 # Include routers
-vercel_app.include_router(pages_router)
-vercel_app.include_router(api_router)
+try:
+    vercel_app.include_router(pages_router)
+    logger.info("Included pages router")
+except Exception as e:
+    logger.error(f"Error including pages router: {e}")
+
+try:
+    vercel_app.include_router(api_router)
+    logger.info("Included API router")
+except Exception as e:
+    logger.error(f"Error including API router: {e}")
 
 
 @vercel_app.get("/health")
