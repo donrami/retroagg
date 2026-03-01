@@ -2,9 +2,11 @@
 
 A **global news aggregator** prioritizing information pluralism and breaking content bubbles through diverse international sources.
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![License](https://img.shields.io/badge/license-AGPL-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.11+-blue.svg)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-green.svg)
+
+**License**: GNU Affero General Public License v3.0 (AGPL-3.0)
 
 ## Philosophy
 
@@ -31,12 +33,6 @@ RetroAgg represents a rebellion against the algorithmic curation and Western-cen
 - **Frontend**: Jinja2 templates with custom CSS
 - **Scheduling**: APScheduler for background tasks
 - **RSS Parsing**: feedparser + httpx for async HTTP
-
-### Aesthetic
-- **Modern clean design** - Dark and light theme support
-- **Inter font** - Modern, readable typography
-- **Responsive layout** - Works on all screen sizes
-- **Accessible** - High contrast, keyboard navigation
 
 ## Installation
 
