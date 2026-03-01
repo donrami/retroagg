@@ -43,11 +43,6 @@
                     </select>
                 </div>
                 
-                {% if selected_regions or date_filter %}
-                <div class="filter-card-footer">
-                    <a href="/" class="btn btn-ghost btn-sm">Clear</a>
-                </div>
-                {% endif %}
             </form>
         </div>
         
@@ -204,11 +199,66 @@ document.addEventListener("DOMContentLoaded", () => {
     let activeArticle = null;
     let isLoading = false;
 
+    // Get theme colors from parent document
+    const getThemeColors = () => {
+        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+        if (isLight) {
+            return {
+                textPrimary: '#2c2c2c',
+                bgPrimary: '#f5f5f0',
+                bgTertiary: '#e0e0db',
+                textTertiary: '#666666',
+                accentPrimary: '#0d6efd',
+                accentPrimaryHover: '#0b5ed7',
+                borderColor: '#cfcfc9'
+            };
+        }
+        // Dark theme defaults
+        return {
+            textPrimary: '#e9ecef',
+            bgPrimary: '#212529',
+            bgTertiary: '#343a40',
+            textTertiary: '#868e96',
+            accentPrimary: '#4dabf7',
+            accentPrimaryHover: '#74c0fc',
+            borderColor: '#495057'
+        };
+    };
+
+    // Update iframe theme without reloading content
+    const updateIframeTheme = () => {
+        if (!readerFrame || readerFrame.style.display === 'none') return;
+        
+        const theme = getThemeColors();
+        try {
+            const doc = readerFrame.contentDocument || readerFrame.contentWindow.document;
+            if (doc && doc.querySelector) {
+                const root = doc.querySelector(':root');
+                if (root) {
+                    root.style.setProperty('--text-primary', theme.textPrimary);
+                    root.style.setProperty('--bg-primary', theme.bgPrimary);
+                    root.style.setProperty('--bg-tertiary', theme.bgTertiary);
+                    root.style.setProperty('--text-tertiary', theme.textTertiary);
+                    root.style.setProperty('--accent-primary', theme.accentPrimary);
+                    root.style.setProperty('--accent-primary-hover', theme.accentPrimaryHover);
+                    root.style.setProperty('--border-color', theme.borderColor);
+                }
+            }
+        } catch (e) {
+            // Cross-origin restriction, ignore
+        }
+    };
+
+    // Listen for theme changes and update iframe
+    window.addEventListener('themechange', updateIframeTheme);
+
     // Render extracted article content in the iframe
     const renderArticleContent = (articleData) => {
         if (!readerFrame) return;
 
         const { title, content, byline, site_name, original_url, image_url } = articleData;
+        
+        const theme = getThemeColors();
         
         const html = `
 <!DOCTYPE html>
@@ -217,6 +267,14 @@ document.addEventListener("DOMContentLoaded", () => {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
+        :root {
+            --text-primary: ${theme.textPrimary};
+            --bg-primary: ${theme.bgPrimary};
+            --bg-tertiary: ${theme.bgTertiary};
+            --text-tertiary: ${theme.textTertiary};
+            --accent-primary: ${theme.accentPrimary};
+            --border-color: ${theme.borderColor};
+        }
         * { box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
@@ -224,8 +282,8 @@ document.addEventListener("DOMContentLoaded", () => {
             max-width: 720px;
             margin: 0 auto;
             padding: 24px 20px;
-            color: #e9ecef;
-            background: #212529;
+            color: var(--text-primary);
+            background: var(--bg-primary);
         }
         .article-image {
             width: 100%;
@@ -233,54 +291,58 @@ document.addEventListener("DOMContentLoaded", () => {
             object-fit: cover;
             border-radius: 8px;
             margin-bottom: 1.5em;
-            background: #343a40;
+            background: var(--bg-tertiary);
         }
-        h1 { font-size: 1.4em; margin-bottom: 0.5em; color: #e9ecef;}
-        .byline { color: #868e96; font-size: 0.9em; margin-bottom: 1.5em; }
+        h1 { font-size: 1.4em; margin-bottom: 0.5em; color: var(--text-primary);}
+        .byline { color: var(--text-tertiary); font-size: 0.9em; margin-bottom: 1.5em; }
         .content { font-size: 1em; }
         .content img { max-width: 100%; height: auto; border-radius: 6px; }
         .content p { margin-bottom: 1em; }
-        .content a { color: #4dabf7; }
+        .content a { color: var(--accent-primary); }
         .content blockquote {
-            border-left: 3px solid #495057;
+            border-left: 3px solid var(--border-color);
             margin: 1em 0;
             padding-left: 1em;
-            color: #868e96;
+            color: var(--text-tertiary);
             font-style: italic;
         }
         .source-link {
             margin-top: 2em;
             padding-top: 1em;
-            border-top: 1px solid #495057;
+            border-top: 1px solid var(--border-color);
             font-size: 0.85em;
-            color: #868e96;
+            color: var(--text-tertiary);
         }
-        .source-link a { color: #4dabf7; text-decoration: none; }
+        .source-link a { color: var(--accent-primary); text-decoration: none; }
         .source-link a:hover { text-decoration: underline; }
         .loading, .error {
             display: flex;
             justify-content: center;
             align-items: center;
             height: 200px;
-            color: #868e96;
+            color: var(--text-tertiary);
         }
-        .error { flex-direction: column; color: #ff6b6b; }
-        .error a { color: #4dabf7; margin-top: 0.5em; }
+        .error { flex-direction: column; color: var(--accent-danger, #ff6b6b); }
+        .error a { color: var(--accent-primary); margin-top: 0.5em; }
         
-        /* Custom Scrollbar - Blue */
+        /* Custom Scrollbar - Uses theme colors */
+        * { scrollbar-width: thin; scrollbar-color: var(--accent-primary) var(--bg-tertiary); }
         ::-webkit-scrollbar { width: 10px; height: 10px; }
-        ::-webkit-scrollbar-track { background: #2c3036; border-radius: 9999px; }
+        ::-webkit-scrollbar-track { background: var(--bg-tertiary); border-radius: 9999px; }
         ::-webkit-scrollbar-thumb {
-            background: linear-gradient(180deg, #4dabf7 0%, #339af0 100%);
+            background: linear-gradient(180deg, var(--accent-primary) 0%, var(--accent-primary) 100%);
             border-radius: 9999px;
-            border: 2px solid #2c3036;
+            border: 2px solid var(--bg-tertiary);
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(180deg, #74c0fc 0%, #4dabf7 100%);
-            box-shadow: 0 0 8px rgba(77, 171, 247, 0.4);
+            background: linear-gradient(180deg, var(--accent-primary-hover, var(--accent-primary)) 0%, var(--accent-primary) 100%);
         }
         ::-webkit-scrollbar-thumb:active {
-            background: linear-gradient(180deg, #339af0 0%, #228be6 100%);
+            background: var(--accent-primary);
+        }
+        /* Remove scrollbar arrows (buttons) */
+        ::-webkit-scrollbar-button {
+            display: none;
         }
     </style>
 </head>

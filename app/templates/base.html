@@ -69,7 +69,7 @@
                 <strong>{{ app_name }}</strong> v0.1.0
             </div>
             <div class="footer-links">
-                <span>Auto-refresh: 15 min</span>
+                <span id="autoRefreshCountdown">Auto-refresh in: 15 min</span>
                 <span class="divider">•</span>
                 <span>No tracking • No algorithms</span>
                 <span class="divider">•</span>
@@ -160,6 +160,8 @@
                     html.removeAttribute('data-theme');
                 }
                 localStorage.setItem('theme', theme);
+                // Dispatch custom event for theme change
+                window.dispatchEvent(new CustomEvent('themechange', { detail: { theme: theme } }));
             }
             
             // Initialize theme on page load
@@ -349,6 +351,25 @@
         function closeSourcesModal() {
             document.getElementById('sourcesModal').style.display = 'none';
         }
+        
+        // Auto-refresh countdown - starts at 15 min and decrements every minute
+        const REFRESH_INTERVAL = 15; // minutes
+        let countdown = REFRESH_INTERVAL;
+        
+        function updateCountdown() {
+            const element = document.getElementById('autoRefreshCountdown');
+            if (element) {
+                element.textContent = `Auto-refresh in: ${countdown} min`;
+            }
+            countdown--;
+            if (countdown < 0) {
+                countdown = REFRESH_INTERVAL;
+            }
+        }
+        
+        // Start countdown immediately and then every minute
+        updateCountdown();
+        setInterval(updateCountdown, 60000);
     </script>
 
     {% block extra_js %}{% endblock %}

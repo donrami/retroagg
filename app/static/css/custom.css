@@ -83,16 +83,16 @@
    ============================================ */
 
 [data-theme="light"] {
-    /* Colors - Light palette */
-    --bg-primary: #ffffff;
-    --bg-secondary: #f8f9fa;
-    --bg-tertiary: #e9ecef;
-    --bg-hover: #dee2e6;
+    /* Colors - Softer Light palette for reduced eye strain */
+    --bg-primary: #f5f5f0;
+    --bg-secondary: #ebebe6;
+    --bg-tertiary: #e0e0db;
+    --bg-hover: #d4d4cf;
     
-    --text-primary: #212529;
-    --text-secondary: #495057;
-    --text-tertiary: #6c757d;
-    --text-muted: #adb5bd;
+    --text-primary: #2c2c2c;
+    --text-secondary: #4a4a4a;
+    --text-tertiary: #666666;
+    --text-muted: #888888;
     
     --accent-primary: #0d6efd;
     --accent-primary-hover: #0b5ed7;
@@ -101,8 +101,8 @@
     --accent-warning: #ffc107;
     --accent-danger: #dc3545;
     
-    --border-color: #dee2e6;
-    --border-light: #e9ecef;
+    --border-color: #cfcfc9;
+    --border-light: #e0e0db;
     
     /* Shadows - Lighter for light theme */
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
@@ -140,6 +140,11 @@
 
 ::-webkit-scrollbar-thumb:active {
     background: linear-gradient(180deg, #339af0 0%, #228be6 100%);
+}
+
+/* Remove scrollbar arrows (buttons) */
+::-webkit-scrollbar-button {
+    display: none;
 }
 
 /* Firefox */
@@ -749,6 +754,7 @@ body {
     width: 100%;
     height: 100%;
     border: none;
+    background: var(--bg-primary);
 }
 
 .reader-empty {
@@ -1567,6 +1573,11 @@ body {
 
 .reader-pane-fixed::-webkit-scrollbar-thumb:active {
     background: linear-gradient(180deg, #339af0 0%, #228be6 100%);
+}
+
+/* Remove scrollbar arrows (buttons) */
+.reader-pane-fixed::-webkit-scrollbar-button {
+    display: none;
 }
 
 .reader-pane-fixed::-webkit-scrollbar-corner {
