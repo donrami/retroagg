@@ -41,9 +41,16 @@ def get_engine():
                 poolclass=NullPool,
             )
         elif "postgresql" in url or "postgres" in url:
-            # Use asyncpg for PostgreSQL - no pool class needed, asyncpg handles it
+            # Use asyncpg for PostgreSQL - need to add asyncpg driver to URL
+            db_url = settings.DATABASE_URL
+            # Convert postgresql:// to postgresql+asyncpg://
+            if "postgresql://" in db_url:
+                db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+            elif "postgres://" in db_url:
+                db_url = db_url.replace("postgres://", "postgresql+asyncpg://", 1)
+            
             _engine = create_async_engine(
-                settings.DATABASE_URL,
+                db_url,
                 echo=False,
                 pool_pre_ping=True,
             )
