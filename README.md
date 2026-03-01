@@ -6,7 +6,7 @@ A **global news aggregator** prioritizing information pluralism and breaking con
 ![Python](https://img.shields.io/badge/python-3.11+-blue.svg)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-green.svg)
 
-**License**: AGPL
+**License**: GNU Affero General Public License v3.0
 
 ## Philosophy
 
@@ -174,43 +174,6 @@ retroagg/
 └── README.md
 ```
 
-## Architecture
-
-```mermaid
-flowchart TB
-    subgraph Frontend["Frontend Layer - Brutalist UI"]
-        UI[Jinja2 Templates + 98.css]
-    end
-
-    subgraph API["API Layer - FastAPI"]
-        Routes[HTTP Routes]
-    end
-
-    subgraph Services["Service Layer"]
-        Fetcher[RSS Fetcher Service]
-        Deduplicator[Deduplication Engine]
-        Scheduler[Background Scheduler]
-    end
-
-    subgraph Data["Data Layer"]
-        Models[SQLAlchemy Models]
-        DB[(SQLite Database)]
-    end
-
-    subgraph Sources["External Sources"]
-        RSS1[Al Jazeera]
-        RSS2[Xinhua]
-        RSS3[The Wire]
-        RSS4[Other Sources]
-    end
-
-    UI --> Routes
-    Routes --> Services
-    Services --> Models
-    Models --> DB
-    Fetcher --> Sources
-```
-
 ## Future Enhancements
 
 - [ ] AI-powered semantic extraction (ScrapeGraphAI)
@@ -231,4 +194,4 @@ flowchart TB
 
 ## License
 
-AGPL v4 License - See LICENSE file for details
+GNU Affero General Public License v3.0 - See LICENSE file for details
