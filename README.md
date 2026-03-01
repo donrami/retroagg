@@ -169,7 +169,6 @@ retroagg/
 │   ├── init_db.py       # Database initialization
 │   └── main.py          # FastAPI application
 ├── data/                # SQLite database
-├── plans/               # Architecture documentation
 ├── requirements.txt
 └── README.md
 ```
