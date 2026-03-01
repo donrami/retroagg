@@ -20,7 +20,8 @@ from fastapi.staticfiles import StaticFiles
 # Import app components (lazy loading for serverless)
 from app.config import settings
 from app.routers import api_router, pages_router
-from app.database import init_db
+from app.database import init_db, get_session_factory
+from app.init_db import seed_categories, seed_sources
 
 
 # Create a new FastAPI instance for Vercel
@@ -33,10 +34,21 @@ vercel_app = FastAPI(
 
 @vercel_app.on_event("startup")
 async def startup_event():
-    """Initialize database tables on startup"""
+    """Initialize database tables and seed data on startup"""
     try:
+        # Create tables
         await init_db()
         logger.info("Database tables initialized")
+        
+        # Seed default categories and sources
+        session_factory = get_session_factory()
+        async with session_factory() as session:
+            try:
+                await seed_categories(session)
+                await seed_sources(session)
+                logger.info("Database seeded with default sources")
+            except Exception as e:
+                logger.warning(f"Could not seed database: {e}")
     except Exception as e:
         logger.warning(f"Could not initialize database: {e}")
 
