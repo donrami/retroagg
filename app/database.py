@@ -40,17 +40,19 @@ def get_engine():
                 echo=False,
                 poolclass=NullPool,
             )
-        else:
-            # Use connection pooling for PostgreSQL in production
+        elif "postgresql" in url or "postgres" in url:
+            # Use asyncpg for PostgreSQL - no pool class needed, asyncpg handles it
             _engine = create_async_engine(
                 settings.DATABASE_URL,
                 echo=False,
-                poolclass=AsyncAdaptedQueuePool,
-                pool_size=10,
-                max_overflow=20,
-                pool_timeout=30,
-                pool_recycle=1800,
                 pool_pre_ping=True,
+            )
+        else:
+            # Default - use NullPool
+            _engine = create_async_engine(
+                settings.DATABASE_URL,
+                echo=False,
+                poolclass=NullPool,
             )
         
         logger.info(f"Database engine initialized: {url[:30]}...")
