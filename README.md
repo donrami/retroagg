@@ -6,7 +6,7 @@ A **global news aggregator** prioritizing information pluralism and breaking con
 ![Python](https://img.shields.io/badge/python-3.11+-blue.svg)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-green.svg)
 
-**License**: GNU Affero General Public License v3.0 (AGPL-3.0)
+**License**: AGPL
 
 ## Philosophy
 
@@ -232,13 +232,3 @@ flowchart TB
 ## License
 
 MIT License - See LICENSE file for details
-
-## Acknowledgments
-
-- [98.css](https://jdan.github.io/98.css/) - Windows 98 CSS framework
-- [FastAPI](https://fastapi.tiangolo.com/) - Modern Python web framework
-- [SQLAlchemy](https://www.sqlalchemy.org/) - SQL toolkit and ORM
-
----
-
-**RetroAgg** - *Breaking the content bubble, one feed at a time.*
