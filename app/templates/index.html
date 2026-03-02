@@ -2,13 +2,21 @@
 
 {% block title %}{{ app_name }} - Global News Aggregator{% endblock %}
 
+{% block body_class %}fixed-layout-app{% endblock %}
+
 {% block content %}
 <!-- Main Reader Shell with Fixed Height -->
+<div class="mobile-overlay-backdrop" id="overlayBackdrop"></div>
 <div class="reader-shell-fixed">
     <!-- Left Pane: Filters + Articles List -->
     <div class="left-pane">
         <!-- Integrated Filter Card -->
         <div class="filter-card">
+            <button type="button" class="filter-overlay-close" id="closeFiltersBtn" aria-label="Close filters">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12"></path>
+                </svg>
+            </button>
             <div class="filter-card-header">
                 <span class="filter-card-title">Filters</span>
             </div>
@@ -17,43 +25,54 @@
                 <div class="filter-pills-compact">
                     {% for region in regions %}
                     {% if region not in ['Global', 'Global South', 'International'] %}
-                    <label class="filter-pill {% if selected_regions and region in selected_regions %}active{% endif %}">
-                        <input type="checkbox"
-                               name="regions"
-                               value="{{ region }}"
-                               {% if selected_regions and region in selected_regions %}checked{% endif %}
-                               onchange="this.form.submit()">
+                    <label
+                        class="filter-pill {% if selected_regions and region in selected_regions %}active{% endif %}">
+                        <input type="checkbox" name="regions" value="{{ region }}" {% if selected_regions and region in
+                            selected_regions %}checked{% endif %} class="region-checkbox">
                         <span>{{ region }}</span>
                     </label>
                     {% endif %}
                     {% endfor %}
                 </div>
-                
+
                 <!-- Date Filter - Granular Dropdown -->
                 <div class="date-filter-dropdown">
                     <label class="date-filter-label">Time range</label>
-                    <select name="date_filter"
-                            class="date-select"
-                            onchange="this.form.submit()">
-                        <option value="0" {% if date_filter == '0' %}selected{% endif %}>Today</option>
-                        <option value="1" {% if date_filter == '1' %}selected{% endif %}>Past 3 days</option>
-                        <option value="2" {% if date_filter == '2' or not date_filter %}selected{% endif %}>Past week</option>
-                        <option value="3" {% if date_filter == '3' %}selected{% endif %}>Past 2 weeks</option>
-                        <option value="4" {% if date_filter == '4' %}selected{% endif %}>Past month</option>
+                    <select name="date_filter" class="date-select" id="dateSelect">
+                        <option value="0" {% if date_filter=='0' or not date_filter %}selected{% endif %}>Today</option>
+                        <option value="1" {% if date_filter=='1' %}selected{% endif %}>Past 3 days</option>
+                        <option value="2" {% if date_filter=='2' %}selected{% endif %}>Past week
+                        </option>
+                        <option value="3" {% if date_filter=='3' %}selected{% endif %}>Past 2 weeks</option>
+                        <option value="4" {% if date_filter=='4' %}selected{% endif %}>Past month</option>
                     </select>
                 </div>
-                
+
+
+
             </form>
         </div>
-        
+
         <!-- Articles List with Scroll -->
         <div class="articles-list-scroll">
             <div class="articles-count-bar">
+                <button type="button"
+                    class="btn-filters-toggle {% if selected_regions or (date_filter and date_filter != '0') %}filters-active{% endif %}"
+                    id="openFiltersBtn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg>
+                    <span id="filterBtnText">Filters</span>
+                    {% if selected_regions %}
+                    <span class="filter-count-bubble" id="filterCountBubble">{{ selected_regions|length }}</span>
+                    {% endif %}
+                </button>
                 <strong>{{ total_articles }}</strong> articles
                 {% if selected_regions %}
-                <span>in {{ selected_regions|join(', ') }}</span>
+                <span class="desktop-only text-muted">in {{ selected_regions|join(', ') }}</span>
                 {% endif %}
-                <button type="button" class="btn-refresh" id="refreshBtn" onclick="refreshFeeds()" title="Pull new articles">
+                <button type="button" class="btn-refresh" id="refreshBtn" onclick="refreshFeeds()"
+                    title="Pull new articles">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M23 4v6h-6"></path>
                         <path d="M1 20v-6h6"></path>
@@ -62,7 +81,7 @@
                     <span id="refreshText">Refresh</span>
                 </button>
             </div>
-            
+
             {% if articles %}
             <div class="articles-list-content">
                 {% for article in articles %}
@@ -87,12 +106,13 @@
                 </div>
                 {% endfor %}
             </div>
-            
+
             <!-- Pagination -->
             {% if total_pages > 1 %}
             <div class="pagination-compact">
                 {% if page > 1 %}
-                <a href="/?page={{ page - 1 }}{% for r in selected_regions %}&regions={{ r }}{% endfor %}{% if date_filter %}&date_filter={{ date_filter }}{% endif %}" class="pagination-btn">
+                <a href="/?page={{ page - 1 }}{% for r in selected_regions %}&regions={{ r }}{% endfor %}{% if date_filter %}&date_filter={{ date_filter }}{% endif %}"
+                    class="pagination-btn">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="15 18 9 12 15 6"></polyline>
                     </svg>
@@ -104,37 +124,45 @@
                     </svg>
                 </span>
                 {% endif %}
-                
+
                 <span class="pagination-info">{{ page }}/{{ total_pages }}</span>
-                
-                {% if page < total_pages %}
-                <a href="/?page={{ page + 1 }}{% for r in selected_regions %}&regions={{ r }}{% endfor %}{% if date_filter %}&date_filter={{ date_filter }}{% endif %}" class="pagination-btn">
+
+                {% if page < total_pages %} <a
+                    href="/?page={{ page + 1 }}{% for r in selected_regions %}&regions={{ r }}{% endfor %}{% if date_filter %}&date_filter={{ date_filter }}{% endif %}"
+                    class="pagination-btn">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="9 18 15 12 9 6"></polyline>
                     </svg>
-                </a>
-                {% else %}
-                <span class="pagination-btn disabled">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="9 18 15 12 9 6"></polyline>
-                    </svg>
-                </span>
-                {% endif %}
+                    </a>
+                    {% else %}
+                    <span class="pagination-btn disabled">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </span>
+                    {% endif %}
             </div>
             {% endif %}
             {% else %}
             <div class="empty-state">
                 <p>No articles found.</p>
                 {% if selected_regions %}
-                <a href="/" class="btn btn-primary btn-sm">Clear filters</a>
+                <a href="/" id="clearFiltersLink" class="btn btn-primary btn-sm">Clear filters</a>
                 {% endif %}
             </div>
             {% endif %}
         </div>
     </div>
-    
+
     <!-- Right Pane: Reader -->
     <div class="reader-pane-fixed" id="readerPane">
+        <button type="button" class="reader-pane-close" id="closeReaderBtn" aria-label="Close reader">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span>Back to list</span>
+        </button>
         <div class="reader-empty" id="readerEmpty">
             <div class="reader-empty-icon">📖</div>
             <p class="reader-empty-text">Click an article to read it here</p>
@@ -146,35 +174,46 @@
 
 {% block extra_js %}
 <script>
-// Manual refresh function
-async function refreshFeeds() {
-    const btn = document.getElementById('refreshBtn');
-    const text = document.getElementById('refreshText');
-    
-    if (btn.classList.contains('loading')) {
-        return; // Already loading
-    }
-    
-    btn.classList.add('loading');
-    text.textContent = 'Refreshing...';
-    btn.disabled = true;
-    
-    try {
-        const response = await fetch('/api/refresh', { method: 'POST' });
-        const data = await response.json();
-        
-        console.log('Refresh response:', data);
-        
-        if (data.status === 'success') {
-            const newCount = data.new_articles || 0;
-            text.textContent = `+${newCount} new`;
-            
-            // Always reload the page to show latest articles
-            // This ensures the user sees the most up-to-date list
-            setTimeout(() => {
-                window.location.reload(true);
-            }, 800);
-        } else {
+    const STORAGE_KEY = 'retroagg_filters_persistent';
+
+    // Manual refresh function
+    async function refreshFeeds() {
+        const btn = document.getElementById('refreshBtn');
+        const text = document.getElementById('refreshText');
+
+        if (btn.classList.contains('loading')) {
+            return; // Already loading
+        }
+
+        btn.classList.add('loading');
+        text.textContent = 'Refreshing...';
+        btn.disabled = true;
+
+        try {
+            const response = await fetch('/api/refresh', { method: 'POST' });
+            const data = await response.json();
+
+            console.log('Refresh response:', data);
+
+            if (data.status === 'success') {
+                const newCount = data.new_articles || 0;
+                text.textContent = `+${newCount} new`;
+
+                // Always reload the page to show latest articles
+                // This ensures the user sees the most up-to-date list
+                setTimeout(() => {
+                    window.location.reload();
+                }, 800);
+            } else {
+                text.textContent = 'Error';
+                setTimeout(() => {
+                    btn.classList.remove('loading');
+                    text.textContent = 'Refresh';
+                    btn.disabled = false;
+                }, 2000);
+            }
+        } catch (error) {
+            console.error('Refresh failed:', error);
             text.textContent = 'Error';
             setTimeout(() => {
                 btn.classList.remove('loading');
@@ -182,85 +221,110 @@ async function refreshFeeds() {
                 btn.disabled = false;
             }, 2000);
         }
-    } catch (error) {
-        console.error('Refresh failed:', error);
-        text.textContent = 'Error';
-        setTimeout(() => {
-            btn.classList.remove('loading');
-            text.textContent = 'Refresh';
-            btn.disabled = false;
-        }, 2000);
     }
-}
 
-document.addEventListener("DOMContentLoaded", () => {
-    const readerFrame = document.getElementById("articleReader");
-    const readerEmpty = document.getElementById("readerEmpty");
-    let activeArticle = null;
-    let isLoading = false;
+    // Save current filters to localStorage
+    function saveFiltersToStorage() {
+        const regions = Array.from(document.querySelectorAll('.region-checkbox:checked')).map(cb => cb.value);
+        const dateFilter = document.getElementById('dateSelect')?.value || '0';
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ regions, dateFilter }));
+    }
 
-    // Get theme colors from parent document
-    const getThemeColors = () => {
-        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-        if (isLight) {
-            return {
-                textPrimary: '#2c2c2c',
-                bgPrimary: '#f5f5f0',
-                bgTertiary: '#e0e0db',
-                textTertiary: '#666666',
-                accentPrimary: '#0d6efd',
-                accentPrimaryHover: '#0b5ed7',
-                borderColor: '#cfcfc9'
-            };
-        }
-        // Dark theme defaults
-        return {
-            textPrimary: '#e9ecef',
-            bgPrimary: '#212529',
-            bgTertiary: '#343a40',
-            textTertiary: '#868e96',
-            accentPrimary: '#4dabf7',
-            accentPrimaryHover: '#74c0fc',
-            borderColor: '#495057'
-        };
-    };
+    // Load filters from storage if arriving at root with no params
+    function initFiltersFromStorage() {
+        const urlParams = new URLSearchParams(window.location.search);
+        // Only trigger if no filter params and we are on the home page
+        const hasFilterParams = urlParams.has('regions') || urlParams.has('date_filter');
+        const isHomePage = window.location.pathname === '/';
 
-    // Update iframe theme without reloading content
-    const updateIframeTheme = () => {
-        if (!readerFrame || readerFrame.style.display === 'none') return;
-        
-        const theme = getThemeColors();
-        try {
-            const doc = readerFrame.contentDocument || readerFrame.contentWindow.document;
-            if (doc && doc.querySelector) {
-                const root = doc.querySelector(':root');
-                if (root) {
-                    root.style.setProperty('--text-primary', theme.textPrimary);
-                    root.style.setProperty('--bg-primary', theme.bgPrimary);
-                    root.style.setProperty('--bg-tertiary', theme.bgTertiary);
-                    root.style.setProperty('--text-tertiary', theme.textTertiary);
-                    root.style.setProperty('--accent-primary', theme.accentPrimary);
-                    root.style.setProperty('--accent-primary-hover', theme.accentPrimaryHover);
-                    root.style.setProperty('--border-color', theme.borderColor);
+        if (!hasFilterParams && isHomePage && !urlParams.has('page')) {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    const { regions, dateFilter } = JSON.parse(saved);
+                    // Only redirect if there's actually something to apply
+                    if ((regions && regions.length > 0) || (dateFilter && dateFilter !== '0')) {
+                        const newUrl = new URL(window.location.href);
+                        if (regions) regions.forEach(r => newUrl.searchParams.append('regions', r));
+                        if (dateFilter) newUrl.searchParams.set('date_filter', dateFilter);
+                        window.location.replace(newUrl.toString());
+                    }
+                } catch (e) {
+                    console.error('Persistence error:', e);
                 }
             }
-        } catch (e) {
-            // Cross-origin restriction, ignore
         }
-    };
+    }
 
-    // Listen for theme changes and update iframe
-    window.addEventListener('themechange', updateIframeTheme);
+    document.addEventListener("DOMContentLoaded", () => {
+        // Initialize filters from storage
+        initFiltersFromStorage();
 
-    // Render extracted article content in the iframe
-    const renderArticleContent = (articleData) => {
-        if (!readerFrame) return;
+        const readerFrame = document.getElementById("articleReader");
+        const readerEmpty = document.getElementById("readerEmpty");
+        let activeArticle = null;
+        let isLoading = false;
 
-        const { title, content, byline, site_name, original_url, image_url } = articleData;
-        
-        const theme = getThemeColors();
-        
-        const html = `
+        // Get theme colors from parent document
+        const getThemeColors = () => {
+            const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+            if (isLight) {
+                return {
+                    textPrimary: '#2c2c2c',
+                    bgPrimary: '#f5f5f0',
+                    bgTertiary: '#e0e0db',
+                    textTertiary: '#666666',
+                    accentPrimary: '#0d6efd',
+                    accentPrimaryHover: '#0b5ed7',
+                    borderColor: '#cfcfc9'
+                };
+            }
+            // Dark theme defaults
+            return {
+                textPrimary: '#e9ecef',
+                bgPrimary: '#212529',
+                bgTertiary: '#343a40',
+                textTertiary: '#868e96',
+                accentPrimary: '#4dabf7',
+                accentPrimaryHover: '#74c0fc',
+                borderColor: '#495057'
+            };
+        };
+
+        // Update iframe theme without reloading content
+        const updateIframeTheme = () => {
+            if (!readerFrame || readerFrame.style.display === 'none') return;
+
+            const theme = getThemeColors();
+            try {
+                const doc = readerFrame.contentDocument || readerFrame.contentWindow.document;
+                if (doc && doc.querySelector) {
+                    const root = doc.querySelector(':root');
+                    if (root) {
+                        root.style.setProperty('--text-primary', theme.textPrimary);
+                        root.style.setProperty('--bg-primary', theme.bgPrimary);
+                        root.style.setProperty('--bg-tertiary', theme.bgTertiary);
+                        root.style.setProperty('--text-tertiary', theme.textTertiary);
+                        root.style.setProperty('--accent-primary', theme.accentPrimary);
+                        root.style.setProperty('--accent-primary-hover', theme.accentPrimaryHover);
+                        root.style.setProperty('--border-color', theme.borderColor);
+                    }
+                }
+            } catch (e) { }
+        };
+
+        // Listen for theme changes and update iframe
+        window.addEventListener('themechange', updateIframeTheme);
+
+        // Render extracted article content in the iframe
+        const renderArticleContent = (articleData) => {
+            if (!readerFrame) return;
+
+            const { title, content, byline, site_name, original_url, image_url } = articleData;
+
+            const theme = getThemeColors();
+
+            const html = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -360,110 +424,157 @@ document.addEventListener("DOMContentLoaded", () => {
 </body>
 </html>`;
 
-        const doc = readerFrame.contentDocument || readerFrame.contentWindow.document;
-        doc.open();
-        doc.write(html);
-        doc.close();
-        
-        readerFrame.style.display = 'block';
-        readerEmpty.style.display = 'none';
-        
-        // Scroll to top of the article
-        readerFrame.contentWindow.scrollTo(0, 0);
-    };
+            const doc = readerFrame.contentDocument || readerFrame.contentWindow.document;
+            doc.open();
+            doc.write(html);
+            doc.close();
 
-    const showLoading = () => {
-        if (!readerFrame || !readerEmpty) return;
-        readerEmpty.innerHTML = '<div class="loading">Loading article...</div>';
-    };
+            readerFrame.style.display = 'block';
+            readerEmpty.style.display = 'none';
 
-    const showError = (message, url) => {
-        if (!readerFrame || !readerEmpty) return;
-        readerEmpty.innerHTML = `
-            <div class="error">
-                <p>${escapeHtml(message)}</p>
-                <a href="${escapeHtml(url)}" target="_blank">Open in new tab</a>
-            </div>
-        `;
-        readerFrame.style.display = 'none';
-        readerEmpty.style.display = 'flex';
-    };
+            // Scroll to top of the article
+            readerFrame.contentWindow.scrollTo(0, 0);
+        };
 
-    const escapeHtml = (text) => {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    };
+        const escapeHtml = (text) => {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        };
 
-    // Strip hyperlinks from HTML content while preserving text
-    const stripHyperlinks = (html) => {
-        if (!html) return '';
-        const div = document.createElement('div');
-        div.innerHTML = html;
-        
-        // Find all anchor tags and replace them with their text content
-        const anchors = div.querySelectorAll('a');
-        anchors.forEach(anchor => {
-            const text = document.createTextNode(anchor.textContent);
-            anchor.parentNode.replaceChild(text, anchor);
-        });
-        
-        return div.innerHTML;
-    };
+        // Strip hyperlinks from HTML content while preserving text
+        const stripHyperlinks = (html) => {
+            if (!html) return '';
+            const div = document.createElement('div');
+            div.innerHTML = html;
 
-    const loadInReader = async (url) => {
-        if (!readerFrame || isLoading) {
-            window.open(url, "_blank");
-            return;
-        }
+            // Find all anchor tags and replace them with their text content
+            const anchors = div.querySelectorAll('a');
+            anchors.forEach(anchor => {
+                const text = document.createTextNode(anchor.textContent);
+                anchor.parentNode.replaceChild(text, anchor);
+            });
 
-        isLoading = true;
-        showLoading();
+            return div.innerHTML;
+        };
 
-        try {
-            const encodedUrl = encodeURIComponent(url);
-            const response = await fetch(`/api/read?url=${encodedUrl}`);
-            
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.detail || `Server error: ${response.status}`);
-            }
-            
-            const articleData = await response.json();
-            renderArticleContent(articleData);
-            
-        } catch (error) {
-            console.error('Failed to load article:', error);
-            showError(
-                'Could not load article. The site may be blocking automated access.',
-                url
-            );
-        } finally {
-            isLoading = false;
-        }
-    };
-
-    // Make whole article card clickable
-    document.querySelectorAll(".article-card-compact").forEach((card) => {
-        card.addEventListener("click", (event) => {
-            // Don't trigger if clicking on a nested link (let it handle its own click)
-            if (event.target.closest("a") && !event.target.classList.contains("article-link")) {
+        const loadInReader = async (url) => {
+            if (!readerFrame || isLoading) {
+                window.open(url, "_blank");
                 return;
             }
-            
-            const articleUrl = card.getAttribute("data-url");
-            if (articleUrl) {
-                loadInReader(articleUrl);
+
+            isLoading = true;
+            readerEmpty.innerHTML = '<div class="loading">Loading article...</div>';
+
+            try {
+                const response = await fetch(`/api/read?url=${encodeURIComponent(url)}`);
+
+                if (!response.ok) throw new Error('Load failed');
+
+                const articleData = await response.json();
+                renderArticleContent(articleData);
+
+            } catch (error) {
+                console.error('Failed to load article:', error);
+                readerEmpty.innerHTML = `<div class="error"><p>Could not load article.</p><a href="${escapeHtml(url)}" target="_blank">Open in new tab</a></div>`;
+                readerFrame.style.display = 'none';
+                readerEmpty.style.display = 'flex';
+            } finally {
+                isLoading = false;
             }
-            
-            if (activeArticle && activeArticle !== card) {
-                activeArticle.classList.remove("active");
+        };
+
+        // Make whole article card clickable
+        document.querySelectorAll(".article-card-compact").forEach((card) => {
+            card.addEventListener("click", (event) => {
+                // Don't trigger if clicking on a nested link (let it handle its own click)
+                if (event.target.closest("a") && !event.target.classList.contains("article-link")) {
+                    return;
+                }
+
+                const articleUrl = card.getAttribute("data-url");
+                if (articleUrl) {
+                    loadInReader(articleUrl);
+
+                    // On mobile, open the reader overlay
+                    if (window.innerWidth <= 1024) {
+                        const readerPane = document.getElementById("readerPane");
+                        const backdrop = document.getElementById("overlayBackdrop");
+                        if (readerPane) readerPane.classList.add("open");
+                        if (backdrop) backdrop.classList.add("active");
+                    }
+                }
+
+                if (activeArticle && activeArticle !== card) {
+                    activeArticle.classList.remove("active");
+                }
+                activeArticle = card;
+                card.classList.add("active");
+            });
+        });
+
+        // Overlay Controls
+        const openFiltersBtn = document.getElementById("openFiltersBtn");
+        const closeFiltersBtn = document.getElementById("closeFiltersBtn");
+        const closeReaderBtn = document.getElementById("closeReaderBtn");
+        const overlayBackdrop = document.getElementById("overlayBackdrop");
+        const filterCard = document.querySelector(".filter-card");
+        const readerPane = document.getElementById("readerPane");
+        const filterForm = document.querySelector('.filter-form-compact');
+        const isMobile = () => window.innerWidth <= 1024;
+
+        const closeAndApplyFilters = () => {
+            if (isMobile() && filterCard?.classList.contains("open")) {
+                filterForm.submit();
+            } else {
+                closeAllOverlays();
             }
-            activeArticle = card;
-            card.classList.add("active");
+        };
+
+        const closeAllOverlays = () => {
+            filterCard?.classList.remove("open");
+            readerPane?.classList.remove("open");
+            overlayBackdrop?.classList.remove("active");
+        };
+
+        openFiltersBtn?.addEventListener("click", () => {
+            filterCard?.classList.add("open");
+            overlayBackdrop?.classList.add("active");
+        });
+
+        closeFiltersBtn?.addEventListener("click", closeAndApplyFilters);
+        closeReaderBtn?.addEventListener("click", () => {
+            readerPane?.classList.remove("open");
+            if (!filterCard?.classList.contains("open")) overlayBackdrop?.classList.remove("active");
+        });
+        overlayBackdrop?.addEventListener("click", closeAndApplyFilters);
+
+        // Filter Logic
+        const regionCheckboxes = document.querySelectorAll('.region-checkbox');
+        const dateSelect = document.getElementById('dateSelect');
+
+        regionCheckboxes.forEach(cb => {
+            cb.addEventListener('change', () => {
+                const label = cb.closest('.filter-pill');
+                if (cb.checked) label.classList.add('active');
+                else label.classList.remove('active');
+
+                saveFiltersToStorage();
+                if (!isMobile()) filterForm.submit();
+            });
+        });
+
+        dateSelect?.addEventListener('change', () => {
+            saveFiltersToStorage();
+            if (!isMobile()) filterForm.submit();
+        });
+
+        // Clear persistence on explicit clear
+        document.getElementById('clearFiltersLink')?.addEventListener('click', () => {
+            localStorage.removeItem(STORAGE_KEY);
         });
     });
-});
 </script>
 {% endblock %}

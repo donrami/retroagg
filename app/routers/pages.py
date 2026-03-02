@@ -43,12 +43,12 @@ async def index(
     
     # Parse date filter (default to 1 week = 2)
     # 0 = Today, 1 = 3 days, 2 = 1 week
-    date_filter_value = 2  # Default to 1 week
+    date_filter_value = 0  # Default to Today
     if date_filter is not None:
         try:
             date_filter_value = int(date_filter)
         except ValueError:
-            date_filter_value = 2
+            date_filter_value = 0
     
     # Calculate the cutoff date based on filter
     # 0=Today, 1=3 days, 2=1 week, 3=2 weeks, 4=1 month, 5=3 months, 6=1 year, 7=All time
